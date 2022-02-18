@@ -7,6 +7,7 @@ import numpy as np
 from datetime import date
 import requests
 from pandas import json_normalize 
+import uuid
 
 ###############
 ## Data prep
@@ -47,6 +48,9 @@ combined['count'] = combined.groupby("address").apply(lambda x: np.arange(1, len
 
 combined['inceptionAPY'] = ((1 + combined.daily).cumprod() - 1)*365/(combined['count'])
 
+combined['id'] = combined.apply(lambda _: uuid.uuid4(), axis=1)
+
+
 historical_apy = combined.drop(['id_x', 'id_y', 'price', 'blocktime', 'daily', 'count'], 1)
 
 
@@ -54,6 +58,9 @@ historical_apy = combined.drop(['id_x', 'id_y', 'price', 'blocktime', 'daily', '
 ###################
 #Statistics table
 ###################
+
+
+
 
 final  = combined.drop_duplicates('address')[['address', 'protocol_id']]
 
@@ -71,7 +78,7 @@ final = pd.merge(corr_monthly, final, on = ['address'])
 final = pd.merge(vol_weekly, final, on = ['address'])
 final = pd.merge(vol_monthly, final, on = ['address'])
 final[['timestamp']] = date.today()
-final[['id']] = 0
+final[['id']] =final.apply(lambda _: uuid.uuid4(), axis=1)
 
 historical_stats = final.rename(columns={"monthlyAPY": "vol_m", "weeklyAPY": "vol_w"})
 
